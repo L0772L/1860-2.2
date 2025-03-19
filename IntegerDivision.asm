@@ -1,47 +1,29 @@
-// IntegerDivision.asm
+@R0
+D=M         // D = x
 @R1
-D=M
-@DIV_ZERO
-D;JEQ    // 如果 y == 0，跳转到 DIV_ZERO
+D=D-M       // D = x - y
+@LOOP_END
+D;LT        // 如果 x < y，跳出循环
 
-@R4
-M=0      // 除法有效，标志位设为 0
+// 计数 m
 @R2
-M=0      // m = 0
-@R3
-M=0      // q = 0
+M=0         // 初始化 m = 0
+(LOOP)
 @R0
-D=M      // D = x
-
-@LOOP
 D=M
 @R1
-D=D-M
-@END_LOOP
-D;JLT    // 如果 x < y，结束
+D=D-M       // D = x - y
+@LOOP_END
+D;LT        // 如果 x < y，结束
 
+@R0
+M=D         // 更新 x = x - y
 @R2
-M=M+1    // m++
-@R0
-D=M
-@R1
-D=D-M    // x = x - y
-@R0
-M=D      // 更新 x
+M=M+1       // m += 1
 @LOOP
-0;JMP    // 继续循环
+0;JMP       // 继续循环
 
-(END_LOOP)
+(LOOP_END)
 @R3
-M=D      // 余数 q = x
-
-@END
-0;JMP
-
-(DIV_ZERO)
-@R4
-M=1      // 除法无效
-@END
-0;JMP
-
+M=M         // 余数已经在 R0 中
 
