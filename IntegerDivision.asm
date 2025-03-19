@@ -1,53 +1,44 @@
-// IntegerDivision.asm - Compute m = x / y and q = x % y
-// Input: R0 = x, R1 = y
-// Output: R2 = m (quotient), R3 = q (remainder), R4 = flag (1 if y=0, else 0)
+// IntegerDivision.asm
+// 计算整数除法的商和余数
+// x 存储在 R0 中，y 存储在 R1 中
+// 商 m 存储在 R2 中，余数 q 存储在 R3 中
+// R4 是标志位，1 表示除法无效，0 表示有效
 
-// Check if y == 0
 @R1
-D=M
-@ERROR
-D;JEQ    // If y == 0, jump to ERROR
+D=M          // D = R1 (y)
+@INVALID
+D;JEQ        // 如果 y == 0，跳转到 INVALID
 
-// Initialize
-@R2
-M=0      // R2 = m = 0
-@R3
-M=0      // R3 = q = 0
-
-// Set q = x
 @R0
-D=M
+D=M          // D = R0 (x)
+@R2
+M=0          // R2 = 0 (初始化商为 0)
 @R3
-M=D      // q = x
+M=D          // R3 = x (初始化余数为 x)
 
 (LOOP)
-  @R3
-  D=M
-  @R1
-  D=D-M
-  @END
-  D;JLT   // If q < y, end loop
+@R3
+D=M          // D = R3 (余数)
+@R1
+D=D-M        // D = R3 - R1 (余数 - y)
+@END
+D;JLT        // 如果余数 < y，跳转到 END
 
-  @R3
-  M=M-D   // q = q - y
-  @R2
-  M=M+1   // m++
+@R1
+D=M          // D = R1 (y)
+@R3
+M=M-D        // R3 = R3 - y (余数减去 y)
+@R2
+M=M+1        // R2 = R2 + 1 (商加 1)
+@LOOP
+0;JMP        // 跳转到 LOOP
 
-  @LOOP
-  0;JMP   // Repeat loop
+(INVALID)
+@R4
+M=1          // R4 = 1 (设置标志位为 1，表示除法无效)
+@END
+0;JMP        // 跳转到 END
 
 (END)
-  @R4
-  M=0     // Set flag to 0
-  @STOP
-  0;JMP   // Jump to stop
-
-(ERROR)
-  @R4
-  M=1     // Set error flag to 1
-  @STOP
-  0;JMP   // Jump to stop
-
-(STOP)
-  @STOP
-  0;JMP   // Infinite loop
+@END
+0;JMP        // 无限循环，程序结束
