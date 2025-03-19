@@ -1,40 +1,53 @@
-// IntegerDivision.asm
-// 计算整数商和余数
-// 输入: R0 = x, R1 = y
-// 输出: R2 = m (商), R3 = q (余数), R4 = flag (1=无效, 0=有效)
+// IntegerDivision.asm - Compute m = x / y and q = x % y
+// Input: R0 = x, R1 = y
+// Output: R2 = m (quotient), R3 = q (remainder), R4 = flag (1 if y=0, else 0)
 
+// Check if y == 0
 @R1
-D=M         // D = y
-@DIV_ZERO
-D;JEQ       // 如果 y == 0，跳转到 DIV_ZERO 处理
+D=M
+@ERROR
+D;JEQ    // If y == 0, jump to ERROR
 
-@R0
-D=M         // D = x
-@R1
-D=D/M       // Hack 汇编不支持除法, 需手写循环
+// Initialize
 @R2
-M=D         // R2 = x / y (商)
-
-// 计算余数 q = x - (y * m)
-@R2
-D=M         // D = m
-@R1
-D=D*M       // D = y * m (Hack 也不支持乘法, 需手写)
-@R0
-D=M-D       // D = x - (y * m)
+M=0      // R2 = m = 0
 @R3
-M=D         // R3 = q (余数)
+M=0      // R3 = q = 0
 
-// 标记合法运算
-@R4
-M=0         // R4 = 0 (合法运算)
-@END
-0;JMP       // 跳转到结束
+// Set q = x
+@R0
+D=M
+@R3
+M=D      // q = x
 
-(DIV_ZERO)
-@R4
-M=1         // R4 = 1 (无效运算)
+(LOOP)
+  @R3
+  D=M
+  @R1
+  D=D-M
+  @END
+  D;JLT   // If q < y, end loop
+
+  @R3
+  M=M-D   // q = q - y
+  @R2
+  M=M+1   // m++
+
+  @LOOP
+  0;JMP   // Repeat loop
+
 (END)
-@END
-0;JMP       // 无限循环
+  @R4
+  M=0     // Set flag to 0
+  @STOP
+  0;JMP   // Jump to stop
 
+(ERROR)
+  @R4
+  M=1     // Set error flag to 1
+  @STOP
+  0;JMP   // Jump to stop
+
+(STOP)
+  @STOP
+  0;JMP   // Infinite loop

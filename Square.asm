@@ -1,27 +1,32 @@
-// Square.asm
+// Square.asm - Compute y = x^2
+// Input: R0 contains x
+// Output: R1 contains x^2
+// Does not modify R0
+
 @R0
-D=M      // D = x
+D=M        // D = x
 @R1
-M=0      // R1 = 0 (初始化 y=0)
+M=0        // R1 = 0 (sum = 0)
 @R2
-M=D      // R2 = x (循环计数器)
+M=D        // R2 = x (counter)
 
 (LOOP)
-@R2
-D=M
-@END
-D;JEQ    // 如果 R2 == 0，结束循环
+  @R2
+  D=M
+  @END
+  D;JEQ    // If counter == 0, exit loop
 
-@R0
-D=M      // D = x
-@R1
-M=M+D    // y += x
+  @R0
+  D=M      // D = x
+  @R1
+  M=M+D    // R1 = R1 + x (sum += x)
 
-@R2
-M=M-1    // R2 -= 1
-@LOOP
-0;JMP    // 继续循环
+  @R2
+  M=M-1    // counter--
+
+  @LOOP
+  0;JMP    // Repeat loop
 
 (END)
-@END
-0;JMP    // 结束程序
+  @END
+  0;JMP    // Infinite loop
