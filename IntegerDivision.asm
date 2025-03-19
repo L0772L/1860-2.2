@@ -1,123 +1,134 @@
 // IntegerDivision.asm
-// 计算商 m 和余数 q，满足 x = y * m + q，q 的符号与 x 一致
 
+// Check if divisor (R1) is zero
 @R1
 D=M
 @INVALID
-D;JEQ        // 如果 y == 0，跳转到无效分支
+D;JEQ
 
-// 保存原始值并取绝对值
+// Save original values to temporary registers
 @R0
 D=M
-@SIGN_X
-M=D          // SIGN_X = x 的符号（原始值）
-@R0
-D=M
-@x_abs
-M=D          // x_abs = x
-@x_abs
-D=M
-@POS_X
-D;JGE        // 如果 x >= 0，跳过取反
-@x_abs
-M=-D         // x_abs = |x|
-
-(POS_X)
+@x_val
+M=D      // x_val = R0
 @R1
 D=M
-@SIGN_Y
-M=D          // SIGN_Y = y 的符号
-@R1
-D=M
-@y_abs
-M=D          // y_abs = y
-@y_abs
-D=M
-@POS_Y
-D;JGE        // 如果 y >= 0，跳过取反
-@y_abs
-M=-D         // y_abs = |y|
+@y_val
+M=D      // y_val = R1
 
-(POS_Y)
-// 初始化商和余数
-@0
-D=A
-@R2
-M=D          // R2 = 0 (商)
+// Compute absolute value of x and determine its sign
+@x_val
+D=M
+@X_NEG
+D;JLT    // Jump if x is negative
+@x_abs
+M=D      // x_abs = x (positive)
+@x_sign
+M=0      // x_sign = 0 (positive)
+@CHECK_Y
+0;JMP
+(X_NEG)
+@x_val
+D=M
+@x_abs
+M=-D     // x_abs = -x (absolute value)
+@x_sign
+M=1      // x_sign = 1 (negative)
+
+// Compute absolute value of y and determine its sign
+(CHECK_Y)
+@y_val
+D=M
+@Y_NEG
+D;JLT    // Jump if y is negative
+@y_abs
+M=D      // y_abs = y (positive)
+@y_sign
+M=0      // y_sign = 0 (positive)
+@DIVIDE
+0;JMP
+(Y_NEG)
+@y_val
+D=M
+@y_abs
+M=-D     // y_abs = -y (absolute value)
+@y_sign
+M=1      // y_sign = 1 (negative)
+
+// Perform unsigned division (x_abs / y_abs)
+(DIVIDE)
+@quotient
+M=0      // quotient = 0
 @x_abs
 D=M
-@R3
-M=D          // R3 = x_abs (余数)
+@remainder
+M=D      // remainder = x_abs
 
 (LOOP)
-@R3
-D=M
 @y_abs
-D=D-M        // D = 余数 - y_abs
+D=M
+@remainder
+D=M-D    // D = remainder - y_abs
 @END_LOOP
-D;JLT        // 余数 < y_abs → 结束循环
-
-// 余数 >= y_abs → 继续减
+D;JLT    // Exit loop if remainder < y_abs
 @y_abs
 D=M
-@R3
-M=M-D        // 余数 -= y_abs
-@R2
-M=M+1        // 商 += 1
+@remainder
+M=M-D    // remainder -= y_abs
+@quotient
+M=M+1    // quotient += 1
 @LOOP
 0;JMP
 
+// Adjust quotient's sign based on x and y signs
 (END_LOOP)
-// 调整商符号：若 x 和 y 符号不同，商为负
-@SIGN_X
+@x_sign
 D=M
-@SIGN_Y
-D=D*M
-@ADJUST_SIGN
-D;JGE        // 同号 → 不需要调整
+@y_sign
+D=D-M
+@QUOTIENT_POS
+D;JEQ     // Same sign, quotient remains positive
+@quotient
+M=-M     // Different signs, negate quotient
+(QUOTIENT_POS)
+
+// Adjust remainder's sign based on x's sign
+@x_sign
+D=M
+@REMAINDER_POS
+D;JEQ     // If x is positive, remainder is positive
+@remainder
+D=M
+@REMAINDER_ZERO
+D;JEQ     // Remainder is zero, no change
+@remainder
+M=-M     // Negate remainder if x is negative
+(REMAINDER_ZERO)
+(REMAINDER_POS)
+
+// Store results and set valid flag
+@quotient
+D=M
 @R2
-M=-M
-
-(ADJUST_SIGN)
-// 调整余数符号：与 x 一致
-@SIGN_X
+M=D      // R2 = quotient
+@remainder
 D=M
 @R3
-M=D          // 余数 = x 的符号 * |余数|
-@R3
-D=M
-@POS_Q
-D;JGE        // 如果 x 非负，跳过取反
-@R3
-M=-M         // 余数取反（因为 x 为负）
-
-(POS_Q)
-// 处理余数为负的情况（确保余数符号与 x 一致）
-@R3
-D=M
-@y_abs
-D=D+M        // D = q + y_abs（若 q < 0，可能需要调整）
-@FINAL_CHECK
-D;JGE        // 如果 q >= 0，无需调整
-
-// 若 q < 0，则 q += y_abs，商 -= 1
-@y_abs
-D=M
-@R3
-M=M+D        // q += y_abs
-@R2
-M=M-1        // m -= 1
-
-(FINAL_CHECK)
+M=D      // R3 = remainder
 @R4
-M=0          // R4 = 0（有效）
+M=0      // R4 = 0 (valid)
 @END
 0;JMP
 
+// Handle invalid division (divisor is zero)
 (INVALID)
 @R4
-M=1          // R4 = 1（无效）
+M=1      // R4 = 1 (invalid)
+@R2
+M=0      // R2 = 0
+@R3
+M=0      // R3 = 0
 
 (END)
 @END
-0;JMP        // 程序终止
+0;JMP
