@@ -1,57 +1,46 @@
 // SumArrayEntries.asm
-// Program: Compute the sum of all elements in an array
-// Inputs: start address of array is in R0, number of elements is in R1
-// Output: sum is stored in R2
-// Must not modify R0 and R1
+// Sum all elements of an array
+// R0 = base address of array
+// R1 = number of elements
+// R2 = result (sum of entries)
+// If R1 <= 0, then R2 = 0
 
-// Check if number of elements is positive
 @R1
 D=M
-@ZERO_SUM
-D;JLE    // If R1 <= 0, set sum = 0
+@ZERO_RESULT
+D;JLE          // If number of entries <= 0, skip to zero result
 
-// Initialize sum and index
 @R2
-M=0      // R2 = 0 (accumulator)
+M=0            // Initialize sum to 0
 @R3
-M=0      // R3 = 0 (index counter)
+M=0            // Counter i = 0
 
 (LOOP)
-// Check if index >= number of elements
 @R3
 D=M
 @R1
 D=D-M
 @END
-D;GE     // If index >= R1, end loop
+D;JGE          // If i >= number of entries, exit loop
 
-// Compute address of current element: base address + index
 @R0
-D=M      // D = base address
+D=M
 @R3
-A=D+M    // A = address of base + index
-D=M      // D = value at array[index]
-
-// Add current element to sum
+A=D+M          // A = base address + i
+D=M            // D = value at array[i]
 @R2
-M=M+D
+M=M+D          // R2 += array[i]
 
-// Increment index
 @R3
-M=M+1
-
-// Repeat loop
+M=M+1          // i++
 @LOOP
-0;JMP
+0;JMP          // Repeat loop
 
-(ZERO_SUM)
-// If number of elements <= 0, set sum = 0
+(ZERO_RESULT)
 @R2
-M=0
-@END
-0;JMP
+M=0            // Set result to 0
 
 (END)
-// End of program
 @END
-0;JMP
+0;JMP          // Halt
+

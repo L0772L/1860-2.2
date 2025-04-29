@@ -1,145 +1,80 @@
 // IntegerDivision.asm
-// Program: Perform integer division x / y
-// Inputs: x is in R0, y is in R1
-// Outputs: quotient in R2, remainder in R3
-// R4 = 1 if division invalid (divisor = 0), else R4 = 0
-// Must not modify R0 and R1
+// Compute: x = y * m + q, with x in R0, y in R1
+// Outputs: R2 = m (quotient), R3 = q (remainder), R4 = 1 if invalid, 0 if valid
 
 // Check if divisor y is zero
 @R1
 D=M
 @INVALID
-D;JEQ     // If y == 0, division invalid
+D;JEQ            // If y == 0, jump to invalid case
 
-// Copy original x and y into temporary registers
+// Store original x in x_val
 @R0
 D=M
 @x_val
-M=D       // Save x into x_val
+M=D
+
+// Store original y in y_val
 @R1
 D=M
 @y_val
-M=D       // Save y into y_val
+M=D
 
-// Compute absolute value of x
+// Absolute value of x
 @x_val
 D=M
-@X_POS
-D;JGE
-@x_val
-D=M
+@X_NEG
+D;JLT            // If x < 0, handle negative
+
 @x_abs
-M=-D      // x_abs = -x if x < 0
+M=D              // x is positive
 @x_sign
-M=1       // x_sign = 1 if x negative
+M=0              // x_sign = 0
 @CHECK_Y
 0;JMP
-(X_POS)
+
+(X_NEG)
 @x_val
 D=M
 @x_abs
-M=D       // x_abs = x if x >= 0
+M=-D             // x_abs = -x
 @x_sign
-M=0       // x_sign = 0 if x positive
+M=1              // x was negative
 
-// Compute absolute value of y
+// Absolute value of y
 (CHECK_Y)
 @y_val
 D=M
-@Y_POS
-D;JGE
-@y_val
-D=M
+@Y_NEG
+D;JLT            // If y < 0, handle negative
+
 @y_abs
-M=-D      // y_abs = -y if y < 0
+M=D              // y is positive
 @y_sign
-M=1       // y_sign = 1 if y negative
+M=0
 @DIVIDE
 0;JMP
-(Y_POS)
+
+(Y_NEG)
 @y_val
 D=M
 @y_abs
-M=D       // y_abs = y if y >= 0
+M=-D             // y_abs = -y
 @y_sign
-M=0       // y_sign = 0 if y positive
+M=1
 
-// Perform division: x_abs / y_abs
+// Begin unsigned division using subtraction loop
 (DIVIDE)
 @quotient
-M=0       // Initialize quotient = 0
+M=0
 @x_abs
 D=M
 @remainder
-M=D       // Initialize remainder = x_abs
+M=D              // remainder = x_abs
 
-(DIV_LOOP)
-// Subtract y_abs from remainder until remainder < y_abs
+(LOOP)
 @y_abs
 D=M
 @remainder
 D=M-D
-@AFTER_DIV
-D;LT      // Exit if remainder < y_abs
-@y_abs
-D=M
-@remainder
-M=M-D     // remainder -= y_abs
-@quotient
-M=M+1     // quotient += 1
-@DIV_LOOP
-0;JMP
-
-(AFTER_DIV)
-// Adjust sign of quotient
-@x_sign
-D=M
-@y_sign
-D=D-M
-@QUOTIENT_DONE
-D;JEQ     // If x and y have same sign, quotient is positive
-@quotient
-M=-M      // Otherwise, negate quotient
-(QUOTIENT_DONE)
-
-// Adjust sign of remainder based on x's sign
-@x_sign
-D=M
-@REMAINDER_DONE
-D;JEQ     // If x positive, remainder positive
-@remainder
-D=M
-@ZERO_REMAINDER
-D;JEQ     // If remainder = 0, skip negation
-@remainder
-M=-M      // Negate remainder if x negative
-(ZERO_REMAINDER)
-(REMAINDER_DONE)
-
-// Store final results
-@quotient
-D=M
-@R2
-M=D       // R2 = quotient
-@remainder
-D=M
-@R3
-M=D       // R3 = remainder
-@R4
-M=0       // R4 = 0 (valid division)
-@END
-0;JMP
-
-(INVALID)
-// If division invalid (divisor = 0)
-@R4
-M=1       // R4 = 1
-@R2
-M=0
-@R3
-M=0
-
-(END)
-// End of program
-@END
-0;JMP
+@

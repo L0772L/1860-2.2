@@ -1,71 +1,45 @@
 // SumEvenIntegers.asm
-// Program: Compute the sum of the first n even numbers
-// Inputs: n is stored in R0
-// Output: result z is stored in R1
-// Special cases:
-//    if n < 0, set R1 = -1
-//    if overflow occurs, set R1 = -2
-// Must not modify R0
+// Compute z = sum of first n even numbers (0 + 2 + 4 + ... + 2n)
+// Input: n in R0
+// Output: result in R1
+// If n < 0, R1 = -1
 
-// Check if n is negative
 @R0
 D=M
 @NEGATIVE
-D;JLT     // If n < 0, jump to NEGATIVE
+D;JLT          // If n < 0, go to NEGATIVE
 
-// Initialize
 @R1
-M=0       // R1 = 0 (accumulator for sum)
-@R2
-M=0       // R2 = 0 (counter i)
+M=0            // Initialize sum R1 = 0
+@I
+M=0            // Initialize loop counter i = 0
 
 (LOOP)
-// Check if i > n
-@R2
-D=M
 @R0
-D=D-M
+D=M
+@I
+D=M-D
 @END
-D;GT      // If i > n, end loop
+D;JGT          // If i > n, end the loop
 
-// Compute 2 * i
-@R2
+@I
 D=M
-D=D+M     // D = 2 * i
-
-// Add to sum
+D=D+M          // Compute 2 * i
 @R1
-M=M+D     // R1 += 2 * i
+M=M+D          // Accumulate result: R1 += 2 * i
 
-// Overflow check (basic)
-@R1
-D=M
-@OVERFLOW
-D;LT      // If sum is negative after addition, overflow
-
-// Increment i
-@R2
-M=M+1
-
-// Repeat loop
+@I
+M=M+1          // i++
 @LOOP
-0;JMP
+0;JMP          // Repeat the loop
 
 (NEGATIVE)
-// If n < 0, set R1 = -1
 @R1
-M=-1
-@END
-0;JMP
-
-(OVERFLOW)
-// If overflow detected, set R1 = -2
-@R1
-M=-2
+M=-1           // If n is negative, set result to -1
 @END
 0;JMP
 
 (END)
-// End of program
 @END
-0;JMP
+0;JMP          // Infinite loop to halt
+
