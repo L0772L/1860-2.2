@@ -1,39 +1,71 @@
 // SumEvenIntegers.asm
+// Program: Compute the sum of the first n even numbers
+// Inputs: n is stored in R0
+// Output: result z is stored in R1
+// Special cases:
+//    if n < 0, set R1 = -1
+//    if overflow occurs, set R1 = -2
+// Must not modify R0
+
+// Check if n is negative
 @R0
 D=M
 @NEGATIVE
-D;JLT    // 如果 n < 0，跳转到 NEGATIVE
+D;JLT     // If n < 0, jump to NEGATIVE
 
+// Initialize
 @R1
-M=0      // 结果初始化为 0
-@I
-M=0      // i = 0 (循环变量)
+M=0       // R1 = 0 (accumulator for sum)
+@R2
+M=0       // R2 = 0 (counter i)
 
 (LOOP)
+// Check if i > n
+@R2
+D=M
 @R0
-D=M
-@I
-D=M-D
+D=D-M
 @END
-D;JGT    // 如果 i > n，结束
+D;GT      // If i > n, end loop
 
-@I
+// Compute 2 * i
+@R2
 D=M
-D=D+M    // 计算 2 * i
-@R1
-M=M+D    // 累加到 R1
+D=D+M     // D = 2 * i
 
-@I
-M=M+1    // i++
+// Add to sum
+@R1
+M=M+D     // R1 += 2 * i
+
+// Overflow check (basic)
+@R1
+D=M
+@OVERFLOW
+D;LT      // If sum is negative after addition, overflow
+
+// Increment i
+@R2
+M=M+1
+
+// Repeat loop
 @LOOP
-0;JMP    // 继续循环
+0;JMP
 
 (NEGATIVE)
+// If n < 0, set R1 = -1
 @R1
 M=-1
 @END
 0;JMP
 
+(OVERFLOW)
+// If overflow detected, set R1 = -2
+@R1
+M=-2
+@END
+0;JMP
+
 (END)
+// End of program
 @END
 0;JMP
